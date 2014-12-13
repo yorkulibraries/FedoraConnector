@@ -21,7 +21,8 @@ class FedoraConnectorPlugin extends Omeka_Plugin_AbstractPlugin
         'after_save_item',
         'admin_head',
         'admin_items_show',
-        'public_items_show'
+        'public_items_show',
+        'public_head'
     );
 
 
@@ -271,4 +272,10 @@ SQL
         return $html;
     }
 
+    public function hookPublicHead()
+    {
+        queue_css_url('//vjs.zencdn.net/4.11/video-js.css');
+        queue_js_url('//vjs.zencdn.net/4.11/video.js');
+        queue_js_string('videojs.options.flash.swf = "//vjs.zencdn.net/4.11/video-js.swf";');
+    }
 }
