@@ -58,6 +58,7 @@ class HTML5Video_Renderer extends FedoraConnector_AbstractRenderer
             
             // list supported sources
             if (in_array($mimeType, $this->videoMimeTypes)) {
+                $videoNode->setAttribute('src', $url);
                 $sourceNode = $dom->createElement('source');
                 $videoNode ->appendChild($sourceNode);
                 $sourceNode->setAttribute('src', $url);
