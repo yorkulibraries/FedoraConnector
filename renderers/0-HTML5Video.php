@@ -51,8 +51,8 @@ class HTML5Video_Renderer extends FedoraConnector_AbstractRenderer
                 $object->pid, $dsid
             );
             
-            // if a thumbnail stream exists then use it a the "poster"
-            if ($dsid == 'TN' && $mimeType == 'image/jpeg') {
+            // if a jpeg stream exists then use it a the "poster"
+            if ($mimeType == 'image/jpeg') {
                 $videoNode->setAttribute('poster', $url);
             }
             
