@@ -276,6 +276,5 @@ SQL
     {
         queue_css_url('//vjs.zencdn.net/4.11/video-js.css');
         queue_js_url('//vjs.zencdn.net/4.11/video.js');
-        queue_js_string('videojs.options.flash.swf = "//vjs.zencdn.net/4.11/video-js.swf";');
     }
 }

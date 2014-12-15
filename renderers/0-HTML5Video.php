@@ -41,6 +41,7 @@ class HTML5Video_Renderer extends FedoraConnector_AbstractRenderer
         $videoNode->setAttribute('width', '640');
         $videoNode->setAttribute('height', '264');
         $videoNode->setAttribute('id', $object->pid);
+        $videoNode->setAttribute('data-setup', '{}');
         
         foreach (explode(',', $object->dsids) as $dsid) {
             $url = "{$object->getServer()->url}/objects/{$object->pid}" .
@@ -58,7 +59,6 @@ class HTML5Video_Renderer extends FedoraConnector_AbstractRenderer
             
             // list supported sources
             if (in_array($mimeType, $this->videoMimeTypes)) {
-                $videoNode->setAttribute('src', $url);
                 $sourceNode = $dom->createElement('source');
                 $videoNode ->appendChild($sourceNode);
                 $sourceNode->setAttribute('src', $url);
