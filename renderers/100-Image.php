@@ -38,15 +38,25 @@ class Image_Renderer extends FedoraConnector_AbstractRenderer
      * @return DOMDocument The HTML DOM for the datastream.
      */
     function display($object, $params = array()) {
-        $url = "{$object->getServer()->url}/objects/{$object->pid}" .
-            "/datastreams/SCREEN/content";
-
         $dom  = new DOMDocument();
-        $node = $dom->createElement('img');
-        $dom ->appendChild($node);
-        $node->setAttribute('class', 'fedora-renderer');
-        $node->setAttribute('alt', 'image');
-        $node->setAttribute('src', $url);
+        
+        foreach (explode(',', $object->dsids) as $dsid) {
+            $url = "{$object->getServer()->url}/objects/{$object->pid}" .
+                "/datastreams/{$dsid}/content";
+
+            // Get mime type.
+            $mimeType = $object->getServer()->getMimeType(
+                $object->pid, $dsid
+            );
+            
+            if ($this->canDisplay($mimeType)) {
+                $node = $dom->createElement('img');
+                $dom ->appendChild($node);
+                $node->setAttribute('class', 'fedora-renderer');
+                $node->setAttribute('alt', 'image');
+                $node->setAttribute('src', $url);
+            }
+        }
 
         return $dom;
     }
