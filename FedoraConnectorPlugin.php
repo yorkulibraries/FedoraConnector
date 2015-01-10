@@ -256,7 +256,7 @@ SQL
         if (fc_isFedoraStream($item)) {
             $uri  = exhibit_builder_exhibit_item_uri($item);
 
-            $dom  = fc_displayObject($item);
+            $dom  = fc_displayObject($item, $options);
             if ($dom->documentElement->tagName == 'img') {
                 $caption = $options['attachment']->caption;
                 $caption = strip_tags($caption, '<br>');

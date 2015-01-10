@@ -33,6 +33,27 @@ class HTML5Video_Renderer extends FedoraConnector_AbstractRenderer
      */
     function display($object, $params = array()) {
         $dom  = new DOMDocument();
+        
+        if (isset($params['forceImage']) && $params['forceImage']) {
+            foreach (explode(',', $object->dsids) as $dsid) {
+                $url = "{$object->getServer()->url}/objects/{$object->pid}" .
+                    "/datastreams/{$dsid}/content";
+
+                // Get mime type.
+                $mimeType = $object->getServer()->getMimeType(
+                    $object->pid, $dsid
+                );
+
+                // if a jpeg stream exists then use it
+                if ($mimeType == 'image/jpeg') {
+                    $imgNode = $dom->createElement('img');
+                    $dom ->appendChild($imgNode);
+                    $imgNode->setAttribute('src', $url);
+                    return $dom;
+                }
+            }
+        }
+        
         $videoNode = $dom->createElement('video');
         $dom ->appendChild($videoNode);
         $videoNode->setAttribute('class', 'video-js vjs-default-skin');
