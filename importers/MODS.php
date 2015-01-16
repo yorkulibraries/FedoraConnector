@@ -22,7 +22,7 @@ class MODS_Importer extends FedoraConnector_AbstractImporter
      */
     public function canImport($dsid)
     {
-        return $dsid == 'descMetadata';
+        return $dsid == 'MODS';
     }
 
 
