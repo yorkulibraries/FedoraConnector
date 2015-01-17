@@ -265,9 +265,12 @@ SQL
                 $el->setAttribute('title', $caption);
             }
             $img  = $dom->saveHTML();
-
-            $html = "<a href=\"$uri\" class=\"exhibit-item-link\">$img</a>"
-                  . get_view()->exhibitAttachmentCaption($options['attachment']);
+            if ($dom->documentElement->tagName == 'img') {
+                $html = "<a href=\"$uri\" class=\"exhibit-item-link\">$img</a>";
+            } else {
+                $html = $img;
+            }
+            $html .= get_view()->exhibitAttachmentCaption($options['attachment']);
         }
         return $html;
     }
