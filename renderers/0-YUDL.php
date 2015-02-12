@@ -10,7 +10,7 @@
  */
 
 
-class HTML5Video_Renderer extends FedoraConnector_AbstractRenderer
+class YUDL_Renderer extends FedoraConnector_AbstractRenderer
 {
     // HTML5 video mime types
     private $videoMimeTypes = array('video/mp4', 'video/webm', 'video/ogg');
@@ -22,7 +22,8 @@ class HTML5Video_Renderer extends FedoraConnector_AbstractRenderer
      * @return boolean True if this can display the datastream.
      */
     function canDisplay($mimeType) {
-        return in_array($mimeType, $this->videoMimeTypes) || $mimeType == 'application/xml';
+        return in_array($mimeType, $this->videoMimeTypes) 
+            || (bool) (preg_match('/^image\/.*/', $mimeType));
     }
 
     /**
@@ -34,21 +35,21 @@ class HTML5Video_Renderer extends FedoraConnector_AbstractRenderer
     function display($object, $params = array()) {
         $dom  = new DOMDocument();
         
-        if (isset($params['forceImage']) && $params['forceImage']) {
+        if (!$this->hasVideoStream($object) || $params['forceImage']) {
             foreach (explode(',', $object->dsids) as $dsid) {
-                $url = "{$object->getServer()->url}/objects/{$object->pid}" .
-                    "/datastreams/{$dsid}/content";
-
                 // Get mime type.
                 $mimeType = $object->getServer()->getMimeType(
                     $object->pid, $dsid
                 );
-
-                // if a jpeg stream exists then use it
-                if ($mimeType == 'image/jpeg') {
+                
+                // display first image stream
+                if (preg_match('/^image\/.*/', $mimeType)) {
                     $imgNode = $dom->createElement('img');
                     $dom ->appendChild($imgNode);
-                    $imgNode->setAttribute('src', $url);
+                    $imgNode->setAttribute('src', $this->getDatastreamURL($object, $dsid));
+                    $imgNode->setAttribute('data-item-id', $object->item_id);
+                    $imgNode->setAttribute('class', 'fedora-renderer');
+                    $imgNode->setAttribute('alt', metadata($object->getItem(), array('Dublin Core', 'Title')));
                     return $dom;
                 }
             }
@@ -63,26 +64,24 @@ class HTML5Video_Renderer extends FedoraConnector_AbstractRenderer
         $videoNode->setAttribute('height', '264');
         $videoNode->setAttribute('id', $object->pid);
         $videoNode->setAttribute('data-setup', '{}');
+        $videoNode->setAttribute('data-item-id', $object->item_id);
         
         foreach (explode(',', $object->dsids) as $dsid) {
-            $url = "{$object->getServer()->url}/objects/{$object->pid}" .
-                "/datastreams/{$dsid}/content";
-
             // Get mime type.
             $mimeType = $object->getServer()->getMimeType(
                 $object->pid, $dsid
             );
             
-            // if a jpeg stream exists then use it a the "poster"
-            if ($mimeType == 'image/jpeg') {
-                $videoNode->setAttribute('poster', $url);
+            // if a TN stream exists then use it as the "poster"
+            if ($dsid == 'TN') {
+                $videoNode->setAttribute('poster', $this->getDatastreamURL($object, $dsid));
             }
             
             // list supported sources
             if (in_array($mimeType, $this->videoMimeTypes)) {
                 $sourceNode = $dom->createElement('source');
                 $videoNode ->appendChild($sourceNode);
-                $sourceNode->setAttribute('src', $url);
+                $sourceNode->setAttribute('src', $this->getDatastreamURL($object, $dsid));
                 $sourceNode->setAttribute('type', $mimeType);
             }
         }
@@ -90,5 +89,30 @@ class HTML5Video_Renderer extends FedoraConnector_AbstractRenderer
         return $dom;
     }
 
-
+    private function hasVideoStream($object) {
+        foreach (explode(',', $object->dsids) as $dsid) {
+            // Get mime type.
+            $mimeType = $object->getServer()->getMimeType(
+                $object->pid, $dsid
+            );
+            if (in_array($mimeType, $this->videoMimeTypes)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private function getDatastreamURL($object, $dsid) {
+        $identifiers = metadata($object->getItem(), array('Dublin Core', 'Identifier'), array('all' => true, 'no_escape' => true));
+        $identifiers = array_values(array_diff($identifiers, array($object->pid)));
+        if (empty($identifiers)) {
+            return "{$object->getServer()->url}/objects/{$object->pid}" .
+                "/datastreams/{$dsid}/content";
+        }
+        $dcIdentifier = strtolower(preg_replace('/[^\da-z\-]/i', '', $identifiers[0]));
+        $path = '/' . str_replace(':', '-', $object->pid) . "/{$dcIdentifier}/datastream/{$dsid}/view";
+        $parts = parse_url($object->getServer()->url);
+        $url = "http://{$parts['host']}{$path}";
+        return $url;
+    }
 }
