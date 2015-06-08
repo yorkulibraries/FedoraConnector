@@ -103,16 +103,9 @@ class YUDL_Renderer extends FedoraConnector_AbstractRenderer
     }
     
     private function getDatastreamURL($object, $dsid) {
-        $identifiers = metadata($object->getItem(), array('Dublin Core', 'Identifier'), array('all' => true, 'no_escape' => true));
-        $identifiers = array_values(array_diff($identifiers, array($object->pid)));
-        if (empty($identifiers)) {
-            return "{$object->getServer()->url}/objects/{$object->pid}" .
-                "/datastreams/{$dsid}/content";
-        }
-        $dcIdentifier = strtolower(preg_replace('/[^\da-z\-]/i', '', $identifiers[0]));
-        $path = '/' . str_replace(':', '-', $object->pid) . "/{$dcIdentifier}/datastream/{$dsid}/view";
+        $path = "/islandora/object/{$object->pid}/datastream/{$dsid}/view";
         $parts = parse_url($object->getServer()->url);
-        $url = "http://{$parts['host']}{$path}";
+        $url = "https://{$parts['host']}{$path}";
         return $url;
     }
 }
